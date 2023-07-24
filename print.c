@@ -1,73 +1,110 @@
 #include "main.h"
-unsigned int _memcpy(buffer_t *output, const char *src, unsigned int n);
-void free_buffer(buffer_t *output);
-buffer_t *init_buffer(void);
 
+void cleanup(va_list args, buffer_t *output);
+int run_printf(const char *format, va_list args, buffer_t *output);
+int _printf(const char *format, ...);
 /**
- * _memcpy - Copies n  number of bytes from memory area src to
- *           the buffer contained in a buffer_t struct.
- * @output: A buffer_t struct.
- * @src: pointer to the memory area to copy.
- * @n: number of bytes to be copied.
- *
- * Return: The number of bytes copied.
+ * cleanup - perform cleanup operation for _printf
+ * @args: va_list of argument
+ * @output: buffer_t struct (structure).
  */
-unsigned int _memcpy(buffer_t *output, const char *src, unsigned int n)
+void cleanup(va_list args, buffer_t *output)
 {
-	unsigned int index;
+	va_end(args);
 
-	for (index = 0; index < n; index++)
+	write(1, output->start, output->len);
+
+	free_buffer(output);
+}
+/**
+ * run_printf - reads through the format string for _printf
+ * @format: character string to print, may contain directives
+ * @output: buffer_t struct containing buffer
+ * @args: va_list of arguments
+ * Return: The number of characters stored to output
+ */
+int run_printf(const char *format, va_list args, buffer_t *output)
+{
+	int i, wid, prec, ret = 0;
+
+	char tmp;
+
+	unsigned char flags, len;
+
+	unsigned int (*f)(va_list, buffer_t *,
+			unsigned char, int, int, unsigned char);
+
+	for (i = 0; *(format + i); i++)
 	{
-		*(output->buffer) = *(src + index);
-		(output->len)++;
+		len = 0;
 
-		if (output->len == 1024)
+		if (*(format + i) == '%')
 		{
-			write(1, output->start, output->len);
-			output->buffer = output->start;
-			output->len = 0;
+			tmp = 0;
+
+			flags = handle_flags(format + i + 1, &tmp);
+
+			wid = handle_width(args, format + i + tmp + 1, &tmp);
+
+			prec = handle_precision(args, format + i + tmp + 1,
+					&tmp);
+
+			len = handle_length(format + i + tmp + 1, &tmp);
+
+			f = handle_specifiers(format + i + tmp + 1);
+
+			if (f != NULL)
+			{
+				i += tmp + 1;
+
+				ret += f(args, output, flags, wid, prec, len);
+
+				continue;
+			}
+			else if (*(format + i + tmp + 1) == '\0')
+			{
+				ret = -1;
+
+				break;
+			}
 		}
 
-		else
-			(output->buffer)++;
+		ret += _memcpy(output, (format + i), 1);
+
+		i += (len != 0) ? 1 : 0;
+
 	}
 
-	return (n);
-}
+	cleanup(args, output);
 
-/**
- * free_buffer - Frees a buffer_t struct.
- * @output: The buffer_t struct to be freed.
- */
-void free_buffer(buffer_t *output)
-{
-	free(output->start);
-	free(output);
-}
+	return (ret);
 
+}
 /**
- * init_buffer - Initializes a variable of struct type buffer_t.
+ * _printf - outputs formatted string
  *
- * Return: pointer to the initialized buffer_t.
+ * @format: character string to print, may contain directives
+ *
+ * @Return: number of printed characters;
+ *
  */
-buffer_t *init_buffer(void)
+int _printf(const char *format, ...)
 {
 	buffer_t *output;
 
-	output = malloc(sizeof(buffer_t));
+	va_list args;
+
+	int ret;
+
+	if (format == NULL)
+		return (-1);
+	output = init_buffer();
+
 	if (output == NULL)
-		return (NULL);
+		return (-1);
+	va_start(args, format);
 
-	output->buffer = malloc(sizeof(char) * 1024);
-	if (output->buffer == NULL)
-	{
-		free(output);
-		return (NULL);
-	}
+	ret = run_printf(format, args, output);
 
-	output->start = output->buffer;
-	output->len = 0;
-
-	return (output);
+	return (ret);
 }
-
