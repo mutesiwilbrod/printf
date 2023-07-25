@@ -17,7 +17,8 @@ void cleanup(va_list args, buffer_t *output)
 	free_buffer(output);
 }
 /**
- * run_printf - reads through the format string for _printf
+ * run_printf - reads through the format string for _print
+ *
  * @format: character string to print, may contain directives
  * @output: buffer_t struct containing buffer
  * @args: va_list of arguments
@@ -30,7 +31,7 @@ int run_printf(const char *format, va_list args, buffer_t *output)
 	char tmp;
 
 	unsigned char flags, len;
-
+	/* @int: ....*/
 	unsigned int (*f)(va_list, buffer_t *,
 			unsigned char, int, int, unsigned char);
 
@@ -85,7 +86,7 @@ int run_printf(const char *format, va_list args, buffer_t *output)
  *
  * @format: character string to print, may contain directives
  *
- * @Return: number of printed characters;
+ * Return: number of printed characters;
  *
  */
 int _printf(const char *format, ...)

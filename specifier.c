@@ -45,6 +45,7 @@ unsigned int convert_c(va_list args, buffer_t *output,
  * @wid: width modifier
  * @prec: precision modifier
  * @output: a buffer_t struct containing character array
+ * @len: ....
  *
  * Return: number of bytes stored to the buffer
  */
@@ -71,9 +72,11 @@ unsigned int convert_percent(va_list args, buffer_t *output,
  * and stores it to a buffer contained in struct
  * @args: a va_list pointing to argument to be converted
  * @wid: widith modfifiers
- * @pre: precision modifiers
+ * @prec: ...
+ * @flags: ...
  * @len: length modifiers
  * @output: a bufffer_t struct containging a char array
+ * Description: ....
  *
  * Return: number of bytes stored to buffer
  */
